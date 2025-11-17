@@ -44,12 +44,16 @@ This agent transforms the KYC process from a manual, multi-hour task into a 5-mi
 
 ### **Day 1 Setup (Initial Setup)**
 
-1. **Install dependencies:**
+1. **Prerequisites:**
+   - Python 3.9 or higher (required for LangGraph)
+   - Check your Python version: `python --version`
+   
+2. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
-2. **Set up your API key:**
+3. **Set up your API key:**
    - Get your Google API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
    - Create a `.env` file in the project root:
      ```bash
@@ -60,7 +64,7 @@ This agent transforms the KYC process from a manual, multi-hour task into a 5-mi
      export GOOGLE_API_KEY="your_api_key_here"
      ```
 
-3. **Test the setup:**
+4. **Test the setup:**
    ```bash
    python main.py --name "Test Customer"
    ```
@@ -70,24 +74,36 @@ This agent transforms the KYC process from a manual, multi-hour task into a 5-mi
 ```
 .
 ├── main.py              # Main entry point and agent orchestration
+├── graph.py             # LangGraph workflow definition
 ├── agents.py            # Agent definitions (SearchAgent, WatchlistAgent, AnalysisAgent)
 ├── tools.py             # Custom tools (watchlist checking, query formatting)
 ├── requirements.txt     # Python dependencies
+├── .env                 # Environment variables (API keys) - not in git
 ├── .env.example         # Example environment variables file
 ├── .gitignore          # Git ignore file
 └── Readme.md           # This file
 ```
 
-### **Current Status: Day 1**
+### **Current Status: Day 2**
 
 ✅ Project structure created  
 ✅ Basic agent skeletons implemented  
 ✅ State management framework set up  
-⏳ Agent implementations (in progress)  
-⏳ Tool integrations (in progress)  
-⏳ LangGraph workflow (pending)
+✅ LangGraph workflow implemented  
+✅ AnalysisAgent with Gemini 1.5 Flash  
+✅ WatchlistAgent with custom tool  
+✅ SearchAgent (simulated, ready for Google Search API)  
+✅ End-to-end workflow functional  
+⏳ Google Custom Search API integration (pending)  
+⏳ Enhanced error handling (in progress)
 
-*(Full implementation will be completed in subsequent days)*
+### **Day 2 Achievements**
+
+- **LangGraph Integration**: Sequential multi-agent workflow using StateGraph
+- **Gemini 1.5 Flash**: AnalysisAgent generates comprehensive risk reports
+- **Custom Tools**: WatchlistAgent uses custom check_watchlist tool
+- **State Management**: AgentState TypedDict manages data flow between agents
+- **Working Pipeline**: Full end-to-end execution from customer name to risk report
 
 ## **Key Concepts Used**
 
