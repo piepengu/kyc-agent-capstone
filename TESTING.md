@@ -118,7 +118,7 @@ Get-Content .env
 
 **Solution 2:** Manually set the environment variable:
 ```powershell
-$env:GOOGLE_API_KEY="AIzaSyAR0cUEIWvD1f6UIHC0zCPz9YoUg-VQaKI"
+$env:GOOGLE_API_KEY="your_api_key_here"
 python main.py --name "John Doe"
 ```
 
@@ -153,7 +153,7 @@ python --version
 
 **Solution:** Check your API key is valid and has access to Gemini models:
 ```powershell
-python -c "import google.generativeai as genai; genai.configure(api_key='AIzaSyAR0cUEIWvD1f6UIHC0zCPz9YoUg-VQaKI'); print([m.name for m in genai.list_models()][:5])"
+python -c "import google.generativeai as genai; genai.configure(api_key='your_api_key_here'); print([m.name for m in genai.list_models()][:5])"
 ```
 
 ## Advanced Testing

@@ -53,16 +53,15 @@ This agent transforms the KYC process from a manual, multi-hour task into a 5-mi
    pip install -r requirements.txt
    ```
 
-3. **Set up your API key:**
+3. **Set up your API keys:**
    - Get your Google API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+   - Get your Google Custom Search Engine ID from [Google Custom Search](https://programmablesearchengine.google.com/)
    - Create a `.env` file in the project root:
      ```bash
      GOOGLE_API_KEY=your_api_key_here
+     GOOGLE_SEARCH_ENGINE_ID=your_search_engine_id_here
      ```
-   - Or export it as an environment variable:
-     ```bash
-     export GOOGLE_API_KEY="your_api_key_here"
-     ```
+   - **Important:** Make sure Custom Search API is enabled in [Google Cloud Console](https://console.cloud.google.com/apis/library) and your API key allows Custom Search API (see [FIX_API_KEY_RESTRICTIONS.md](FIX_API_KEY_RESTRICTIONS.md) for details)
 
 4. **Test the setup:**
    ```bash
@@ -100,9 +99,9 @@ This agent transforms the KYC process from a manual, multi-hour task into a 5-mi
 ✅ LangGraph workflow implemented  
 ✅ AnalysisAgent with Gemini 2.0 Flash  
 ✅ WatchlistAgent with custom tool  
-✅ SearchAgent (simulated, ready for Google Search API)  
+✅ SearchAgent with Google Custom Search API (real search results)  
 ✅ End-to-end workflow functional  
-⏳ Google Custom Search API integration (pending)  
+✅ Google Custom Search API integrated and working  
 ⏳ Enhanced error handling (in progress)
 
 ### **Day 2 Achievements**
@@ -111,14 +110,15 @@ This agent transforms the KYC process from a manual, multi-hour task into a 5-mi
 - **Gemini 2.0 Flash**: AnalysisAgent generates comprehensive risk reports
 - **Custom Tools**: WatchlistAgent uses custom check_watchlist tool
 - **State Management**: AgentState TypedDict manages data flow between agents
-- **Working Pipeline**: Full end-to-end execution from customer name to risk report
+- **Google Custom Search API**: SearchAgent now uses real Google Custom Search API for adverse media searches
+- **Working Pipeline**: Full end-to-end execution from customer name to risk report with real search results
 
 ## **Key Concepts Used**
 
 *This section will explicitly map our code to the course's key concepts for the judges.*
 
 1. **Multi-agent system (Sequential):** See main.py, line 42\. Our LangGraph StateGraph defines the sequential flow between the SearchAgent, WatchlistAgent, and AnalysisAgent.  
-2. **Tools (Built-in):** See agents.py, line 15\. The SearchAgent is equipped with the GoogleSearch tool.  
+2. **Tools (Built-in):** See agents.py, line 67-68\. The SearchAgent uses Google Custom Search API (googleapiclient) to search for adverse media.  
 3. **Tools (Custom):** See tools.py, line 8\. We built a custom check\_watchlist tool for our WatchlistAgent.  
 4. **Sessions & Memory:** See main.py, line 25\. The AgentState TypedDict is used to manage and pass state between all nodes in the graph.  
 5. **(Bonus) Use Gemini:** See agents.py, line 127\. The AnalysisAgent uses the gemini-2.0-flash-exp model to generate its final report.  

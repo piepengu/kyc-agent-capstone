@@ -44,10 +44,38 @@ class SearchAgent:
         if not self.api_key:
             raise ValueError("GOOGLE_API_KEY environment variable not set. Please set it in .env file or as environment variable.")
         
-        # For Google Custom Search API, we'll use a simple approach
-        # Note: This requires a Custom Search Engine ID (CX) for full functionality
-        # For now, we'll use a mock/simulated approach that can be enhanced
-        print("[+] SearchAgent initialized")
+        # Initialize Google Custom Search API
+        self.search_engine_id = os.getenv("GOOGLE_SEARCH_ENGINE_ID")
+        
+        # If not found, try to load from .env file directly
+        if not self.search_engine_id:
+            try:
+                env_path = os.path.join(os.path.dirname(__file__), '.env')
+                if os.path.exists(env_path):
+                    with open(env_path, 'r', encoding='utf-8') as f:
+                        for line in f:
+                            line = line.strip()
+                            if line.startswith('GOOGLE_SEARCH_ENGINE_ID='):
+                                self.search_engine_id = line.split('=', 1)[1].strip().strip('"').strip("'")
+                                os.environ['GOOGLE_SEARCH_ENGINE_ID'] = self.search_engine_id
+                                break
+            except Exception:
+                pass
+        
+        # Try to import Google API client
+        try:
+            from googleapiclient.discovery import build
+            self.search_service = build("customsearch", "v1", developerKey=self.api_key)
+            self.use_real_search = True
+            if not self.search_engine_id:
+                print("[!] Warning: GOOGLE_SEARCH_ENGINE_ID not set, using simulated search")
+                self.use_real_search = False
+            else:
+                print(f"[+] SearchAgent initialized with Google Custom Search (CX: {self.search_engine_id[:10]}...)")
+        except ImportError:
+            print("[!] Warning: google-api-python-client not properly installed, using simulated search")
+            self.use_real_search = False
+            self.search_service = None
     
     def search_adverse_media(self, customer_name: str) -> List[Dict[str, str]]:
         """
@@ -69,19 +97,48 @@ class SearchAgent:
             query = format_search_query(customer_name, query_type)
             print(f"   [*] Query: {query}")
             
-            # TODO: Implement actual Google Custom Search API call
-            # For now, using simulated results for testing
-            # In production, this would use: googleapiclient.discovery.build("customsearch", "v1", developerKey=self.api_key)
-            
-            # Simulated search results for demonstration
-            simulated_results = [
-                {
-                    "title": f"News article about {customer_name}",
-                    "snippet": f"Recent news coverage related to {customer_name} and financial activities.",
-                    "link": f"https://example.com/news/{customer_name.replace(' ', '-')}"
-                }
-            ]
-            all_results.extend(simulated_results)
+            # Try to use real Google Custom Search API
+            if self.use_real_search and self.search_service and self.search_engine_id:
+                try:
+                    # Execute Google Custom Search
+                    result = self.search_service.cse().list(
+                        q=query,
+                        cx=self.search_engine_id,
+                        num=3  # Get top 3 results per query
+                    ).execute()
+                    
+                    # Extract results
+                    if 'items' in result:
+                        for item in result['items']:
+                            all_results.append({
+                                "title": item.get('title', ''),
+                                "snippet": item.get('snippet', ''),
+                                "link": item.get('link', '')
+                            })
+                        print(f"   [+] Found {len(result.get('items', []))} real search results")
+                    else:
+                        print(f"   [!] No results found for query")
+                except Exception as e:
+                    print(f"   [!] Search API error: {str(e)}, using simulated results")
+                    # Fallback to simulated results
+                    simulated_results = [
+                        {
+                            "title": f"News article about {customer_name}",
+                            "snippet": f"Recent news coverage related to {customer_name} and financial activities.",
+                            "link": f"https://example.com/news/{customer_name.replace(' ', '-')}"
+                        }
+                    ]
+                    all_results.extend(simulated_results)
+            else:
+                # Simulated search results for demonstration
+                simulated_results = [
+                    {
+                        "title": f"News article about {customer_name}",
+                        "snippet": f"Recent news coverage related to {customer_name} and financial activities.",
+                        "link": f"https://example.com/news/{customer_name.replace(' ', '-')}"
+                    }
+                ]
+                all_results.extend(simulated_results)
         
         print(f"   [+] Found {len(all_results)} search results")
         return all_results

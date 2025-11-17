@@ -10,7 +10,7 @@ The Google API key was accidentally committed to the public GitHub repository in
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Navigate to **APIs & Services** > **Credentials**
-3. Find the API key: `AIzaSyAR0cUEIWvD1f6UIHC0zCPz9YoUg-VQaKI`
+3. Find the API key (check your `.env` file or Google Cloud Console)
 4. Click **Edit** and then **Regenerate Key**
 5. **Save the new key securely**
 
