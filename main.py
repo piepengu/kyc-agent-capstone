@@ -29,7 +29,7 @@ def main():
         "error": ""
     }
     
-    print(f"🔍 Starting KYC investigation for: {args.name}")
+    print(f"[*] Starting KYC investigation for: {args.name}")
     print("=" * 60)
     print()
     
@@ -43,25 +43,25 @@ def main():
         # Display results
         print()
         print("=" * 60)
-        print("✅ KYC investigation complete!")
+        print("[+] KYC investigation complete!")
         print("=" * 60)
         
         if final_state.get("error"):
-            print(f"\n⚠️  Errors encountered: {final_state['error']}")
+            print(f"\n[!] Errors encountered: {final_state['error']}")
         
-        print("\n📄 FINAL RISK ASSESSMENT REPORT:")
+        print("\n[REPORT] FINAL RISK ASSESSMENT REPORT:")
         print("-" * 60)
         print(final_state.get("final_report", "Report not generated"))
         print("-" * 60)
         
         # Summary statistics
-        print("\n📊 Summary:")
+        print("\n[SUMMARY]")
         print(f"   - Search Results: {len(final_state.get('search_results', []))} items found")
         print(f"   - Watchlists Checked: {len(final_state.get('watchlist_results', {}).get('watchlists_checked', []))}")
         print(f"   - Watchlist Matches: {len(final_state.get('watchlist_results', {}).get('matches', []))}")
         
     except Exception as e:
-        print(f"\n❌ Fatal error: {str(e)}")
+        print(f"\n[ERROR] Fatal error: {str(e)}")
         import traceback
         traceback.print_exc()
         return 1

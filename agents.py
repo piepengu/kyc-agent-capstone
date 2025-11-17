@@ -30,7 +30,7 @@ class SearchAgent:
         # For Google Custom Search API, we'll use a simple approach
         # Note: This requires a Custom Search Engine ID (CX) for full functionality
         # For now, we'll use a mock/simulated approach that can be enhanced
-        print("✅ SearchAgent initialized")
+        print("[+] SearchAgent initialized")
     
     def search_adverse_media(self, customer_name: str) -> List[Dict[str, str]]:
         """
@@ -42,7 +42,7 @@ class SearchAgent:
         Returns:
             List of dictionaries containing search results with 'title', 'snippet', 'link'
         """
-        print(f"🔎 SearchAgent: Searching for adverse media on '{customer_name}'...")
+        print(f"[*] SearchAgent: Searching for adverse media on '{customer_name}'...")
         
         # Generate multiple search queries
         query_types = ["adverse_media", "fraud", "sanctions"]
@@ -50,7 +50,7 @@ class SearchAgent:
         
         for query_type in query_types:
             query = format_search_query(customer_name, query_type)
-            print(f"   📝 Query: {query}")
+            print(f"   [*] Query: {query}")
             
             # TODO: Implement actual Google Custom Search API call
             # For now, using simulated results for testing
@@ -66,7 +66,7 @@ class SearchAgent:
             ]
             all_results.extend(simulated_results)
         
-        print(f"   ✅ Found {len(all_results)} search results")
+        print(f"   [+] Found {len(all_results)} search results")
         return all_results
 
 
@@ -80,7 +80,7 @@ class WatchlistAgent:
     
     def __init__(self):
         """Initialize the WatchlistAgent with custom watchlist tool."""
-        print("✅ WatchlistAgent initialized with custom watchlist tool")
+        print("[+] WatchlistAgent initialized with custom watchlist tool")
     
     def check_watchlists(self, customer_name: str) -> Dict:
         """
@@ -95,15 +95,15 @@ class WatchlistAgent:
             - watchlists_checked: List[str]
             - matches: List[Dict]
         """
-        print(f"📋 WatchlistAgent: Checking '{customer_name}' against watchlists...")
+        print(f"[*] WatchlistAgent: Checking '{customer_name}' against watchlists...")
         
         # Use the custom check_watchlist tool
         results = check_watchlist(customer_name)
         
         if results.get("matched"):
-            print(f"   ⚠️  WARNING: Match found in watchlists!")
+            print(f"   [!] WARNING: Match found in watchlists!")
         else:
-            print(f"   ✅ No matches found in {len(results.get('watchlists_checked', []))} watchlists")
+            print(f"   [+] No matches found in {len(results.get('watchlists_checked', []))} watchlists")
         
         return results
 
@@ -123,9 +123,9 @@ class AnalysisAgent:
             raise ValueError("GOOGLE_API_KEY environment variable not set")
         
         genai.configure(api_key=api_key)
-        # Initialize Gemini 1.5 Flash model
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
-        print("✅ AnalysisAgent initialized with Gemini 1.5 Flash")
+        # Initialize Gemini 2.0 Flash model (using available model)
+        self.model = genai.GenerativeModel('models/gemini-2.0-flash-exp')
+        print("[+] AnalysisAgent initialized with Gemini 2.0 Flash")
     
     def generate_report(
         self, 
@@ -144,7 +144,7 @@ class AnalysisAgent:
         Returns:
             Structured risk assessment report
         """
-        print(f"📊 AnalysisAgent: Generating risk report for '{customer_name}'...")
+        print(f"[*] AnalysisAgent: Generating risk report for '{customer_name}'...")
         
         # Format search results for the prompt
         search_summary = ""
@@ -190,11 +190,11 @@ Format the report clearly with sections and bullet points where appropriate."""
             response = self.model.generate_content(prompt)
             report = response.text
             
-            print(f"   ✅ Report generated successfully ({len(report)} characters)")
+            print(f"   [+] Report generated successfully ({len(report)} characters)")
             return report
             
         except Exception as e:
             error_msg = f"Error generating report: {str(e)}"
-            print(f"   ❌ {error_msg}")
+            print(f"   [ERROR] {error_msg}")
             return f"Error: {error_msg}"
 

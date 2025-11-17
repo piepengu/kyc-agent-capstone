@@ -90,7 +90,7 @@ This agent transforms the KYC process from a manual, multi-hour task into a 5-mi
 ✅ Basic agent skeletons implemented  
 ✅ State management framework set up  
 ✅ LangGraph workflow implemented  
-✅ AnalysisAgent with Gemini 1.5 Flash  
+✅ AnalysisAgent with Gemini 2.0 Flash  
 ✅ WatchlistAgent with custom tool  
 ✅ SearchAgent (simulated, ready for Google Search API)  
 ✅ End-to-end workflow functional  
@@ -100,7 +100,7 @@ This agent transforms the KYC process from a manual, multi-hour task into a 5-mi
 ### **Day 2 Achievements**
 
 - **LangGraph Integration**: Sequential multi-agent workflow using StateGraph
-- **Gemini 1.5 Flash**: AnalysisAgent generates comprehensive risk reports
+- **Gemini 2.0 Flash**: AnalysisAgent generates comprehensive risk reports
 - **Custom Tools**: WatchlistAgent uses custom check_watchlist tool
 - **State Management**: AgentState TypedDict manages data flow between agents
 - **Working Pipeline**: Full end-to-end execution from customer name to risk report
@@ -113,7 +113,7 @@ This agent transforms the KYC process from a manual, multi-hour task into a 5-mi
 2. **Tools (Built-in):** See agents.py, line 15\. The SearchAgent is equipped with the GoogleSearch tool.  
 3. **Tools (Custom):** See tools.py, line 8\. We built a custom check\_watchlist tool for our WatchlistAgent.  
 4. **Sessions & Memory:** See main.py, line 25\. The AgentState TypedDict is used to manage and pass state between all nodes in the graph.  
-5. **(Bonus) Use Gemini:** See agents.py, line 30\. The AnalysisAgent uses the gemini-2.5-flash model to generate its final report.  
+5. **(Bonus) Use Gemini:** See agents.py, line 127\. The AnalysisAgent uses the gemini-2.0-flash-exp model to generate its final report.  
 6. **(Bonus) Deployment:** See the "Deployment Strategy" section below.
 
 *(This is a placeholder for Day 7\)*
