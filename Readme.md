@@ -66,8 +66,16 @@ This agent transforms the KYC process from a manual, multi-hour task into a 5-mi
 
 4. **Test the setup:**
    ```bash
+   # Activate virtual environment first
+   .\venv\Scripts\Activate.ps1  # Windows PowerShell
+   # or
+   venv\Scripts\activate.bat     # Windows CMD
+   
+   # Run the agent
    python main.py --name "Test Customer"
    ```
+   
+   **📖 For detailed testing instructions, see [TESTING.md](TESTING.md)**
 
 ### **Project Structure**
 

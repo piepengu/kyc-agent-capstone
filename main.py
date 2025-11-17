@@ -11,7 +11,25 @@ from dotenv import load_dotenv
 from graph import create_workflow, AgentState
 
 # Load environment variables
-load_dotenv()
+# Try multiple methods to load .env file
+env_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(env_path):
+    load_dotenv(env_path, override=True)
+else:
+    load_dotenv(override=True)  # Fallback to default behavior
+
+# Verify API key is loaded, if not try to set from .env file directly
+if not os.getenv('GOOGLE_API_KEY'):
+    # Last resort: read .env file directly
+    try:
+        with open(env_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                if line.startswith('GOOGLE_API_KEY='):
+                    api_key = line.split('=', 1)[1].strip()
+                    os.environ['GOOGLE_API_KEY'] = api_key
+                    break
+    except Exception:
+        pass
 
 
 def main():

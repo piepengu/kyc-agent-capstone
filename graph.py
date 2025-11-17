@@ -11,6 +11,57 @@ try:
 except ImportError:
     from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, END
+import os
+from dotenv import load_dotenv
+
+# Load environment variables before importing agents
+# Try multiple paths for .env file
+env_paths = [
+    os.path.join(os.path.dirname(__file__), '.env'),  # Relative to this file
+    os.path.join(os.getcwd(), '.env'),  # Current working directory
+    '.env'  # Current directory
+]
+
+env_path = None
+for path in env_paths:
+    if os.path.exists(path):
+        env_path = path
+        break
+
+# Always try to load from .env file directly first
+if env_path:
+    try:
+        with open(env_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    key = key.strip()
+                    value = value.strip().strip('"').strip("'")
+                    os.environ[key] = value
+    except Exception as e:
+        pass  # Silent fail, will try load_dotenv
+
+# Also try load_dotenv as backup
+if env_path:
+    load_dotenv(env_path, override=True)
+else:
+    load_dotenv(override=True)
+
+# Final verification - only raise error if still not found
+if not os.getenv('GOOGLE_API_KEY'):
+    # Last resort: try to read from current directory
+    try:
+        with open('.env', 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('GOOGLE_API_KEY='):
+                    api_key = line.split('=', 1)[1].strip().strip('"').strip("'")
+                    os.environ['GOOGLE_API_KEY'] = api_key
+                    break
+    except Exception:
+        pass
+
 from agents import SearchAgent, WatchlistAgent, AnalysisAgent
 
 

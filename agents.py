@@ -23,9 +23,26 @@ class SearchAgent:
     
     def __init__(self):
         """Initialize the SearchAgent with Google Search capabilities."""
+        # Try to get API key from environment
         self.api_key = os.getenv("GOOGLE_API_KEY")
+        
+        # If not found, try to load from .env file directly
         if not self.api_key:
-            raise ValueError("GOOGLE_API_KEY environment variable not set")
+            try:
+                env_path = os.path.join(os.path.dirname(__file__), '.env')
+                if os.path.exists(env_path):
+                    with open(env_path, 'r', encoding='utf-8') as f:
+                        for line in f:
+                            line = line.strip()
+                            if line.startswith('GOOGLE_API_KEY='):
+                                self.api_key = line.split('=', 1)[1].strip().strip('"').strip("'")
+                                os.environ['GOOGLE_API_KEY'] = self.api_key
+                                break
+            except Exception:
+                pass
+        
+        if not self.api_key:
+            raise ValueError("GOOGLE_API_KEY environment variable not set. Please set it in .env file or as environment variable.")
         
         # For Google Custom Search API, we'll use a simple approach
         # Note: This requires a Custom Search Engine ID (CX) for full functionality
@@ -118,9 +135,26 @@ class AnalysisAgent:
     
     def __init__(self):
         """Initialize the AnalysisAgent with Gemini 1.5 Flash model."""
+        # Try to get API key from environment
         api_key = os.getenv("GOOGLE_API_KEY")
+        
+        # If not found, try to load from .env file directly
         if not api_key:
-            raise ValueError("GOOGLE_API_KEY environment variable not set")
+            try:
+                env_path = os.path.join(os.path.dirname(__file__), '.env')
+                if os.path.exists(env_path):
+                    with open(env_path, 'r', encoding='utf-8') as f:
+                        for line in f:
+                            line = line.strip()
+                            if line.startswith('GOOGLE_API_KEY='):
+                                api_key = line.split('=', 1)[1].strip().strip('"').strip("'")
+                                os.environ['GOOGLE_API_KEY'] = api_key
+                                break
+            except Exception:
+                pass
+        
+        if not api_key:
+            raise ValueError("GOOGLE_API_KEY environment variable not set. Please set it in .env file or as environment variable.")
         
         genai.configure(api_key=api_key)
         # Initialize Gemini 2.0 Flash model (using available model)
