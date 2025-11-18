@@ -63,6 +63,10 @@ def classify_error(error: Exception) -> Tuple[bool, str]:
     if any(keyword in error_str for keyword in ['timeout', 'connection', 'network', 'unreachable']):
         return True, "Network error. Please check your internet connection and try again."
     
+    # Check for TimeoutError type specifically
+    if error_type == 'TimeoutError':
+        return True, "Request timed out. Please try again."
+    
     # Rate limit keywords - retryable
     if any(keyword in error_str for keyword in ['rate limit', 'quota', 'too many requests']):
         return True, "API rate limit exceeded. Please wait a moment and try again."
