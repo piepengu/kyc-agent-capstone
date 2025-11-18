@@ -220,8 +220,12 @@ class WatchlistAgent:
             log_watchlist_check(watchlist_logger, customer_name, watchlists_checked, matches)
             
             if results.get("matched"):
-                watchlist_logger.warning(f"Watchlist match found for {customer_name}: {matches}")
-                print(f"   [!] WARNING: Match found in watchlists!")
+                matches_list = results.get("matches", [])
+                watchlist_logger.warning(f"Watchlist match found for {customer_name}: {len(matches_list)} match(es)")
+                print(f"   [!] WARNING: {len(matches_list)} match(es) found in watchlists!")
+                for match in matches_list:
+                    print(f"      - {match.get('watchlist')}: {match.get('name')} (similarity: {match.get('similarity', 0):.1%})")
+                    print(f"        Reason: {match.get('reason', 'Not specified')}")
             else:
                 watchlist_logger.info(f"No watchlist matches found for {customer_name}")
                 print(f"   [+] No matches found in {len(watchlists_checked)} watchlists")
