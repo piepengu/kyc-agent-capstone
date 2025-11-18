@@ -35,13 +35,21 @@ if not os.getenv('GOOGLE_API_KEY'):
 
 def main():
     """Main entry point for the KYC Bot."""
+    from error_handling import validate_customer_name
+    
     parser = argparse.ArgumentParser(description="KYC Bot - Automated KYC Compliance Agent")
     parser.add_argument("--name", type=str, required=True, help="Customer name to investigate")
     args = parser.parse_args()
     
+    # Validate customer name
+    is_valid, error_msg = validate_customer_name(args.name)
+    if not is_valid:
+        print(f"[ERROR] Invalid customer name: {error_msg}")
+        return 1
+    
     # Initialize state
     initial_state: AgentState = {
-        "customer_name": args.name,
+        "customer_name": args.name.strip(),
         "search_results": [],
         "watchlist_results": {},
         "final_report": "",

@@ -111,7 +111,16 @@ def search_node(state: AgentState) -> AgentState:
     search_agent, _, _ = get_agents()
     
     try:
-        customer_name = state["customer_name"]
+        customer_name = state.get("customer_name", "")
+        if not customer_name:
+            error_msg = "Customer name is required but was not provided"
+            workflow_logger.error(error_msg)
+            return {
+                **state,
+                "error": error_msg,
+                "search_results": []
+            }
+        
         workflow_logger.info(f"Executing search_node for: {customer_name}")
         search_results = search_agent.search_adverse_media(customer_name)
         workflow_logger.info(f"Search node completed: {len(search_results)} results found")
@@ -119,13 +128,25 @@ def search_node(state: AgentState) -> AgentState:
         return {
             **state,
             "search_results": search_results,
-            "error": ""
+            "error": state.get("error", "")
         }
-    except Exception as e:
-        workflow_logger.error(f"Search node error: {str(e)}")
+    except ValueError as e:
+        # Validation errors - don't retry
+        error_msg = f"Invalid input: {str(e)}"
+        workflow_logger.error(f"Search node validation error: {error_msg}")
         return {
             **state,
-            "error": f"SearchAgent error: {str(e)}"
+            "error": error_msg,
+            "search_results": []
+        }
+    except Exception as e:
+        error_msg = f"SearchAgent error: {str(e)}"
+        workflow_logger.error(f"Search node error: {error_msg}")
+        # Return empty results but continue workflow
+        return {
+            **state,
+            "error": error_msg,
+            "search_results": []
         }
 
 
@@ -144,7 +165,16 @@ def watchlist_node(state: AgentState) -> AgentState:
     _, watchlist_agent, _ = get_agents()
     
     try:
-        customer_name = state["customer_name"]
+        customer_name = state.get("customer_name", "")
+        if not customer_name:
+            error_msg = "Customer name is required but was not provided"
+            workflow_logger.error(error_msg)
+            return {
+                **state,
+                "error": f"{state.get('error', '')}; {error_msg}".strip('; '),
+                "watchlist_results": {"matched": False, "watchlists_checked": [], "matches": []}
+            }
+        
         workflow_logger.info(f"Executing watchlist_node for: {customer_name}")
         watchlist_results = watchlist_agent.check_watchlists(customer_name)
         workflow_logger.info(f"Watchlist node completed: matched={watchlist_results.get('matched', False)}")
@@ -154,11 +184,23 @@ def watchlist_node(state: AgentState) -> AgentState:
             "watchlist_results": watchlist_results,
             "error": state.get("error", "")
         }
-    except Exception as e:
-        workflow_logger.error(f"Watchlist node error: {str(e)}")
+    except ValueError as e:
+        # Validation errors - don't retry
+        error_msg = f"Invalid input: {str(e)}"
+        workflow_logger.error(f"Watchlist node validation error: {error_msg}")
         return {
             **state,
-            "error": f"{state.get('error', '')}; WatchlistAgent error: {str(e)}"
+            "error": f"{state.get('error', '')}; {error_msg}".strip('; '),
+            "watchlist_results": {"matched": False, "watchlists_checked": [], "matches": []}
+        }
+    except Exception as e:
+        error_msg = f"WatchlistAgent error: {str(e)}"
+        workflow_logger.error(f"Watchlist node error: {error_msg}")
+        # Return empty results but continue workflow
+        return {
+            **state,
+            "error": f"{state.get('error', '')}; {error_msg}".strip('; '),
+            "watchlist_results": {"matched": False, "watchlists_checked": [], "matches": []}
         }
 
 
@@ -177,9 +219,18 @@ def analysis_node(state: AgentState) -> AgentState:
     _, _, analysis_agent = get_agents()
     
     try:
-        customer_name = state["customer_name"]
+        customer_name = state.get("customer_name", "")
         search_results = state.get("search_results", [])
         watchlist_results = state.get("watchlist_results", {})
+        
+        if not customer_name:
+            error_msg = "Customer name is required but was not provided"
+            workflow_logger.error(error_msg)
+            return {
+                **state,
+                "error": f"{state.get('error', '')}; {error_msg}".strip('; '),
+                "final_report": f"Error: {error_msg}"
+            }
         
         workflow_logger.info(f"Executing analysis_node for: {customer_name}")
         final_report = analysis_agent.generate_report(
@@ -195,11 +246,26 @@ def analysis_node(state: AgentState) -> AgentState:
             "error": state.get("error", "")
         }
     except Exception as e:
-        workflow_logger.error(f"Analysis node error: {str(e)}")
+        error_msg = f"AnalysisAgent error: {str(e)}"
+        workflow_logger.error(f"Analysis node error: {error_msg}")
+        # Generate a basic error report
+        fallback_report = f"""## KYC Risk Assessment Report - {state.get('customer_name', 'Unknown')}
+
+**Error:** Unable to generate full risk assessment report.
+
+**Error Details:** {error_msg}
+
+**Available Data:**
+- Search Results: {len(search_results)} items
+- Watchlists Checked: {len(watchlist_results.get('watchlists_checked', []))}
+- Watchlist Matches: {len(watchlist_results.get('matches', []))}
+
+**Recommendation:** Please review the available data manually.
+"""
         return {
             **state,
-            "error": f"{state.get('error', '')}; AnalysisAgent error: {str(e)}",
-            "final_report": f"Error generating report: {str(e)}"
+            "error": f"{state.get('error', '')}; {error_msg}".strip('; '),
+            "final_report": fallback_report
         }
 
 

@@ -207,12 +207,40 @@ This design ensures:
 
 ### **Error Handling**
 
-Each node has **try-except** blocks that:
-- Log errors to the workflow logger
-- Update the `error` field in state
-- Allow workflow to continue (graceful degradation)
+The system includes comprehensive error handling with multiple layers:
 
-**Code Reference**: See `graph.py`, lines 124-129, 157-162, 197-203.
+1. **Input Validation**: Customer names are validated before processing
+   - Minimum length: 2 characters
+   - Maximum length: 200 characters
+   - Invalid character filtering
+   - **Code Reference**: `error_handling.py`, `validate_customer_name()` function
+
+2. **Retry Logic**: API calls use exponential backoff retry
+   - Google Custom Search: 2 retries with 1s initial delay
+   - Gemini API: 2 retries with 1s initial delay
+   - Automatic retry for transient errors (rate limits, network issues)
+   - **Code Reference**: `error_handling.py`, `retry_with_backoff()` decorator
+
+3. **Error Classification**: Errors are classified as retryable or non-retryable
+   - Retryable: Network errors, rate limits, server errors (5xx)
+   - Non-retryable: Authentication errors, invalid requests (4xx)
+   - **Code Reference**: `error_handling.py`, `classify_error()` function
+
+4. **Graceful Degradation**: System continues even when components fail
+   - Search failures: Falls back to simulated results
+   - Report generation failures: Generates basic fallback report
+   - Workflow continues to completion even with partial failures
+   - **Code Reference**: `graph.py`, all node functions with try-except blocks
+
+5. **User-Friendly Messages**: Clear, actionable error messages
+   - Explains what went wrong
+   - Suggests what to check
+   - Provides context for troubleshooting
+
+**Code Reference**: 
+- Error handling utilities: `error_handling.py`
+- Node error handling: `graph.py`, lines 113-150, 167-204, 200-248
+- Agent error handling: `agents.py`, lines 140-154, 352-387
 
 ### **Logging & Observability**
 

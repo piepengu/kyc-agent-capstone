@@ -9,13 +9,16 @@ This module contains the three main agents:
 
 from typing import List, Dict
 import os
+import time
 import google.generativeai as genai
+from googleapiclient.errors import HttpError
 from tools import format_search_query, check_watchlist
 from logger import (
     search_logger, watchlist_logger, analysis_logger, api_logger,
     track_execution, track_api_call, log_search_query, log_search_results,
     log_watchlist_check, log_report_generation
 )
+from error_handling import retry_with_backoff, handle_api_error, classify_error, validate_customer_name
 
 
 class SearchAgent:
@@ -91,7 +94,15 @@ class SearchAgent:
             
         Returns:
             List of dictionaries containing search results with 'title', 'snippet', 'link'
+            
+        Raises:
+            ValueError: If customer_name is invalid
         """
+        # Validate customer name
+        is_valid, error_msg = validate_customer_name(customer_name)
+        if not is_valid:
+            raise ValueError(f"Invalid customer name: {error_msg}")
+        
         with track_execution("SearchAgent", search_logger):
             print(f"[*] SearchAgent: Searching for adverse media on '{customer_name}'...")
             search_logger.info(f"Starting adverse media search for: {customer_name}")
@@ -108,13 +119,17 @@ class SearchAgent:
                 # Try to use real Google Custom Search API
                 if self.use_real_search and self.search_service and self.search_engine_id:
                     try:
-                        # Execute Google Custom Search with API tracking
-                        with track_api_call("Google Custom Search", f"query: {query}", api_logger):
-                            result = self.search_service.cse().list(
+                        # Execute Google Custom Search with retry logic and API tracking
+                        @retry_with_backoff(max_retries=2, initial_delay=1.0, retryable_exceptions=(HttpError, Exception))
+                        def execute_search():
+                            return self.search_service.cse().list(
                                 q=query,
                                 cx=self.search_engine_id,
                                 num=3  # Get top 3 results per query
                             ).execute()
+                        
+                        with track_api_call("Google Custom Search", f"query: {query}", api_logger):
+                            result = execute_search()
                         
                         # Extract results
                         if 'items' in result:
@@ -131,8 +146,10 @@ class SearchAgent:
                             search_logger.warning(f"No results found for query: {query}")
                             print(f"   [!] No results found for query")
                     except Exception as e:
-                        search_logger.error(f"Search API error for query '{query}': {str(e)}")
-                        print(f"   [!] Search API error: {str(e)}, using simulated results")
+                        is_retryable, user_message = classify_error(e)
+                        search_logger.error(f"Search API error for query '{query}': {user_message}")
+                        print(f"   [!] Search API error: {user_message}")
+                        print(f"   [*] Using fallback simulated results for this query")
                         # Fallback to simulated results
                         simulated_results = [
                             {
@@ -174,17 +191,22 @@ class WatchlistAgent:
     
     def check_watchlists(self, customer_name: str) -> Dict:
         """
-        Check customer name against various watchlists.
+        Check customer against watchlists.
         
         Args:
             customer_name: The name of the customer to check
             
         Returns:
-            Dictionary with watchlist check results containing:
-            - matched: bool
-            - watchlists_checked: List[str]
-            - matches: List[Dict]
+            Dictionary with watchlist check results
+            
+        Raises:
+            ValueError: If customer_name is invalid
         """
+        # Validate customer name
+        is_valid, error_msg = validate_customer_name(customer_name)
+        if not is_valid:
+            raise ValueError(f"Invalid customer name: {error_msg}")
+        
         with track_execution("WatchlistAgent", watchlist_logger):
             print(f"[*] WatchlistAgent: Checking '{customer_name}' against watchlists...")
             watchlist_logger.info(f"Starting watchlist check for: {customer_name}")
@@ -306,10 +328,18 @@ Please generate a structured risk assessment report that includes:
 Format the report clearly with sections and bullet points where appropriate."""
 
             try:
-                # Generate the report using Gemini with API tracking
+                # Generate the report using Gemini with retry logic and API tracking
+                @retry_with_backoff(max_retries=2, initial_delay=1.0, retryable_exceptions=(Exception,))
+                def generate_report_with_retry():
+                    return self.model.generate_content(prompt)
+                
                 with track_api_call("Gemini API", "generate_content", api_logger):
-                    response = self.model.generate_content(prompt)
+                    response = generate_report_with_retry()
                     report = response.text
+                
+                # Validate report was generated
+                if not report or len(report.strip()) < 100:
+                    raise ValueError("Generated report is too short or empty")
                 
                 # Extract risk level from report (if present)
                 risk_level = None
@@ -325,8 +355,39 @@ Format the report clearly with sections and bullet points where appropriate."""
                 return report
                 
             except Exception as e:
-                error_msg = f"Error generating report: {str(e)}"
+                is_retryable, user_message = classify_error(e)
+                error_msg = f"Error generating report: {user_message}"
                 analysis_logger.error(f"Report generation failed for {customer_name}: {error_msg}")
                 print(f"   [ERROR] {error_msg}")
-                return f"Error: {error_msg}"
+                
+                # Generate a basic fallback report
+                fallback_report = f"""## KYC Risk Assessment Report - {customer_name}
+
+**Date:** {time.strftime('%Y-%m-%d')}
+
+**1. Executive Summary:**
+
+An error occurred while generating the full risk assessment report. A basic assessment is provided below.
+
+**2. Risk Level:** UNABLE TO DETERMINE
+
+**3. Key Findings:**
+
+- Search Results: {len(search_results)} items found
+- Watchlists Checked: {len(watchlist_results.get('watchlists_checked', []))}
+- Watchlist Matches: {len(watchlist_results.get('matches', []))}
+
+**4. Error Information:**
+
+{error_msg}
+
+**5. Recommendations:**
+
+Please review the search results and watchlist check manually. The automated analysis could not be completed due to a technical error.
+
+**6. Overall Assessment:**
+
+Unable to complete automated risk assessment. Manual review required.
+"""
+                return fallback_report
 
