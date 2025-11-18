@@ -41,3 +41,15 @@ Thumbs.db
 *.log
 logs/
 
+# PDF files (course materials, not needed in repo)
+*.pdf
+
+# Redundant documentation files
+ACTIVATE_ENV.md
+ENABLE_CUSTOM_SEARCH_API.md
+FIX_CUSTOM_SEARCH_API.md
+QUICK_FIX_CUSTOM_SEARCH.md
+QUICK_TEST.md
+TESTING.md
+SECURITY_NOTICE.md
+
