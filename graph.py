@@ -63,6 +63,7 @@ if not os.getenv('GOOGLE_API_KEY'):
         pass
 
 from agents import SearchAgent, WatchlistAgent, AnalysisAgent
+from logger import workflow_logger, performance_tracker
 
 
 # AgentState TypedDict for managing state between agents
@@ -111,7 +112,9 @@ def search_node(state: AgentState) -> AgentState:
     
     try:
         customer_name = state["customer_name"]
+        workflow_logger.info(f"Executing search_node for: {customer_name}")
         search_results = search_agent.search_adverse_media(customer_name)
+        workflow_logger.info(f"Search node completed: {len(search_results)} results found")
         
         return {
             **state,
@@ -119,6 +122,7 @@ def search_node(state: AgentState) -> AgentState:
             "error": ""
         }
     except Exception as e:
+        workflow_logger.error(f"Search node error: {str(e)}")
         return {
             **state,
             "error": f"SearchAgent error: {str(e)}"
@@ -141,7 +145,9 @@ def watchlist_node(state: AgentState) -> AgentState:
     
     try:
         customer_name = state["customer_name"]
+        workflow_logger.info(f"Executing watchlist_node for: {customer_name}")
         watchlist_results = watchlist_agent.check_watchlists(customer_name)
+        workflow_logger.info(f"Watchlist node completed: matched={watchlist_results.get('matched', False)}")
         
         return {
             **state,
@@ -149,6 +155,7 @@ def watchlist_node(state: AgentState) -> AgentState:
             "error": state.get("error", "")
         }
     except Exception as e:
+        workflow_logger.error(f"Watchlist node error: {str(e)}")
         return {
             **state,
             "error": f"{state.get('error', '')}; WatchlistAgent error: {str(e)}"
@@ -174,11 +181,13 @@ def analysis_node(state: AgentState) -> AgentState:
         search_results = state.get("search_results", [])
         watchlist_results = state.get("watchlist_results", {})
         
+        workflow_logger.info(f"Executing analysis_node for: {customer_name}")
         final_report = analysis_agent.generate_report(
             customer_name,
             search_results,
             watchlist_results
         )
+        workflow_logger.info(f"Analysis node completed: report length={len(final_report)} characters")
         
         return {
             **state,
@@ -186,6 +195,7 @@ def analysis_node(state: AgentState) -> AgentState:
             "error": state.get("error", "")
         }
     except Exception as e:
+        workflow_logger.error(f"Analysis node error: {str(e)}")
         return {
             **state,
             "error": f"{state.get('error', '')}; AnalysisAgent error: {str(e)}",

@@ -9,6 +9,7 @@ import os
 import argparse
 from dotenv import load_dotenv
 from graph import create_workflow, AgentState
+from logger import performance_tracker, workflow_logger
 
 # Load environment variables
 # Try multiple methods to load .env file
@@ -51,12 +52,20 @@ def main():
     print("=" * 60)
     print()
     
+    # Start performance tracking
+    performance_tracker.start_investigation(args.name)
+    workflow_logger.info("=" * 60)
+    workflow_logger.info(f"Starting KYC investigation for: {args.name}")
+    workflow_logger.info("=" * 60)
+    
     try:
         # Create and run the LangGraph workflow
         workflow = create_workflow()
+        workflow_logger.info("Workflow created successfully")
         
         # Execute the workflow
         final_state = workflow.invoke(initial_state)
+        workflow_logger.info("Workflow execution completed")
         
         # Display results
         print()
@@ -78,7 +87,13 @@ def main():
         print(f"   - Watchlists Checked: {len(final_state.get('watchlist_results', {}).get('watchlists_checked', []))}")
         print(f"   - Watchlist Matches: {len(final_state.get('watchlist_results', {}).get('matches', []))}")
         
+        # End performance tracking and log summary
+        performance_tracker.end_investigation()
+        performance_tracker.log_summary()
+        
     except Exception as e:
+        workflow_logger.error(f"Fatal error in main: {str(e)}", exc_info=True)
+        performance_tracker.end_investigation()
         print(f"\n[ERROR] Fatal error: {str(e)}")
         import traceback
         traceback.print_exc()

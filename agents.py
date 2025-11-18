@@ -11,6 +11,11 @@ from typing import List, Dict
 import os
 import google.generativeai as genai
 from tools import format_search_query, check_watchlist
+from logger import (
+    search_logger, watchlist_logger, analysis_logger, api_logger,
+    track_execution, track_api_call, log_search_query, log_search_results,
+    log_watchlist_check, log_report_generation
+)
 
 
 class SearchAgent:
@@ -87,40 +92,59 @@ class SearchAgent:
         Returns:
             List of dictionaries containing search results with 'title', 'snippet', 'link'
         """
-        print(f"[*] SearchAgent: Searching for adverse media on '{customer_name}'...")
-        
-        # Generate multiple search queries
-        query_types = ["adverse_media", "fraud", "sanctions"]
-        all_results = []
-        
-        for query_type in query_types:
-            query = format_search_query(customer_name, query_type)
-            print(f"   [*] Query: {query}")
+        with track_execution("SearchAgent", search_logger):
+            print(f"[*] SearchAgent: Searching for adverse media on '{customer_name}'...")
+            search_logger.info(f"Starting adverse media search for: {customer_name}")
             
-            # Try to use real Google Custom Search API
-            if self.use_real_search and self.search_service and self.search_engine_id:
-                try:
-                    # Execute Google Custom Search
-                    result = self.search_service.cse().list(
-                        q=query,
-                        cx=self.search_engine_id,
-                        num=3  # Get top 3 results per query
-                    ).execute()
-                    
-                    # Extract results
-                    if 'items' in result:
-                        for item in result['items']:
-                            all_results.append({
-                                "title": item.get('title', ''),
-                                "snippet": item.get('snippet', ''),
-                                "link": item.get('link', '')
-                            })
-                        print(f"   [+] Found {len(result.get('items', []))} real search results")
-                    else:
-                        print(f"   [!] No results found for query")
-                except Exception as e:
-                    print(f"   [!] Search API error: {str(e)}, using simulated results")
-                    # Fallback to simulated results
+            # Generate multiple search queries
+            query_types = ["adverse_media", "fraud", "sanctions"]
+            all_results = []
+            
+            for query_type in query_types:
+                query = format_search_query(customer_name, query_type)
+                log_search_query(search_logger, customer_name, query)
+                print(f"   [*] Query: {query}")
+                
+                # Try to use real Google Custom Search API
+                if self.use_real_search and self.search_service and self.search_engine_id:
+                    try:
+                        # Execute Google Custom Search with API tracking
+                        with track_api_call("Google Custom Search", f"query: {query}", api_logger):
+                            result = self.search_service.cse().list(
+                                q=query,
+                                cx=self.search_engine_id,
+                                num=3  # Get top 3 results per query
+                            ).execute()
+                        
+                        # Extract results
+                        if 'items' in result:
+                            result_count = len(result['items'])
+                            for item in result['items']:
+                                all_results.append({
+                                    "title": item.get('title', ''),
+                                    "snippet": item.get('snippet', ''),
+                                    "link": item.get('link', '')
+                                })
+                            log_search_results(search_logger, query, result_count, is_real=True)
+                            print(f"   [+] Found {result_count} real search results")
+                        else:
+                            search_logger.warning(f"No results found for query: {query}")
+                            print(f"   [!] No results found for query")
+                    except Exception as e:
+                        search_logger.error(f"Search API error for query '{query}': {str(e)}")
+                        print(f"   [!] Search API error: {str(e)}, using simulated results")
+                        # Fallback to simulated results
+                        simulated_results = [
+                            {
+                                "title": f"News article about {customer_name}",
+                                "snippet": f"Recent news coverage related to {customer_name} and financial activities.",
+                                "link": f"https://example.com/news/{customer_name.replace(' ', '-')}"
+                            }
+                        ]
+                        all_results.extend(simulated_results)
+                        log_search_results(search_logger, query, len(simulated_results), is_real=False)
+                else:
+                    # Simulated search results for demonstration
                     simulated_results = [
                         {
                             "title": f"News article about {customer_name}",
@@ -129,19 +153,11 @@ class SearchAgent:
                         }
                     ]
                     all_results.extend(simulated_results)
-            else:
-                # Simulated search results for demonstration
-                simulated_results = [
-                    {
-                        "title": f"News article about {customer_name}",
-                        "snippet": f"Recent news coverage related to {customer_name} and financial activities.",
-                        "link": f"https://example.com/news/{customer_name.replace(' ', '-')}"
-                    }
-                ]
-                all_results.extend(simulated_results)
-        
-        print(f"   [+] Found {len(all_results)} search results")
-        return all_results
+                    log_search_results(search_logger, query, len(simulated_results), is_real=False)
+            
+            search_logger.info(f"Search completed: {len(all_results)} total results found")
+            print(f"   [+] Found {len(all_results)} search results")
+            return all_results
 
 
 class WatchlistAgent:
@@ -169,17 +185,26 @@ class WatchlistAgent:
             - watchlists_checked: List[str]
             - matches: List[Dict]
         """
-        print(f"[*] WatchlistAgent: Checking '{customer_name}' against watchlists...")
-        
-        # Use the custom check_watchlist tool
-        results = check_watchlist(customer_name)
-        
-        if results.get("matched"):
-            print(f"   [!] WARNING: Match found in watchlists!")
-        else:
-            print(f"   [+] No matches found in {len(results.get('watchlists_checked', []))} watchlists")
-        
-        return results
+        with track_execution("WatchlistAgent", watchlist_logger):
+            print(f"[*] WatchlistAgent: Checking '{customer_name}' against watchlists...")
+            watchlist_logger.info(f"Starting watchlist check for: {customer_name}")
+            
+            # Use the custom check_watchlist tool
+            results = check_watchlist(customer_name)
+            
+            watchlists_checked = results.get('watchlists_checked', [])
+            matches = results.get('matches', [])
+            
+            log_watchlist_check(watchlist_logger, customer_name, watchlists_checked, matches)
+            
+            if results.get("matched"):
+                watchlist_logger.warning(f"Watchlist match found for {customer_name}: {matches}")
+                print(f"   [!] WARNING: Match found in watchlists!")
+            else:
+                watchlist_logger.info(f"No watchlist matches found for {customer_name}")
+                print(f"   [+] No matches found in {len(watchlists_checked)} watchlists")
+            
+            return results
 
 
 class AnalysisAgent:
@@ -235,28 +260,32 @@ class AnalysisAgent:
         Returns:
             Structured risk assessment report
         """
-        print(f"[*] AnalysisAgent: Generating risk report for '{customer_name}'...")
-        
-        # Format search results for the prompt
-        search_summary = ""
-        if search_results:
-            search_summary = "\n".join([
-                f"- {result.get('title', 'N/A')}: {result.get('snippet', 'N/A')}"
-                for result in search_results[:10]  # Limit to top 10 results
-            ])
-        else:
-            search_summary = "No adverse media found in search results."
-        
-        # Format watchlist results
-        watchlist_summary = f"""
+        with track_execution("AnalysisAgent", analysis_logger):
+            print(f"[*] AnalysisAgent: Generating risk report for '{customer_name}'...")
+            analysis_logger.info(f"Starting report generation for: {customer_name}")
+            analysis_logger.info(f"Input data: {len(search_results)} search results, "
+                               f"{len(watchlist_results.get('watchlists_checked', []))} watchlists checked")
+            
+            # Format search results for the prompt
+            search_summary = ""
+            if search_results:
+                search_summary = "\n".join([
+                    f"- {result.get('title', 'N/A')}: {result.get('snippet', 'N/A')}"
+                    for result in search_results[:10]  # Limit to top 10 results
+                ])
+            else:
+                search_summary = "No adverse media found in search results."
+            
+            # Format watchlist results
+            watchlist_summary = f"""
 Watchlist Check Results:
 - Matched: {watchlist_results.get('matched', False)}
 - Watchlists Checked: {', '.join(watchlist_results.get('watchlists_checked', []))}
 - Number of Matches: {len(watchlist_results.get('matches', []))}
 """
-        
-        # Create the prompt for Gemini
-        prompt = f"""You are a KYC (Know Your Customer) compliance analyst. Analyze the following information and generate a comprehensive risk assessment report.
+            
+            # Create the prompt for Gemini
+            prompt = f"""You are a KYC (Know Your Customer) compliance analyst. Analyze the following information and generate a comprehensive risk assessment report.
 
 Customer Name: {customer_name}
 
@@ -276,16 +305,28 @@ Please generate a structured risk assessment report that includes:
 
 Format the report clearly with sections and bullet points where appropriate."""
 
-        try:
-            # Generate the report using Gemini
-            response = self.model.generate_content(prompt)
-            report = response.text
-            
-            print(f"   [+] Report generated successfully ({len(report)} characters)")
-            return report
-            
-        except Exception as e:
-            error_msg = f"Error generating report: {str(e)}"
-            print(f"   [ERROR] {error_msg}")
-            return f"Error: {error_msg}"
+            try:
+                # Generate the report using Gemini with API tracking
+                with track_api_call("Gemini API", "generate_content", api_logger):
+                    response = self.model.generate_content(prompt)
+                    report = response.text
+                
+                # Extract risk level from report (if present)
+                risk_level = None
+                if "Risk Level:" in report or "risk level:" in report.lower():
+                    # Try to extract risk level
+                    import re
+                    risk_match = re.search(r'Risk Level[:\s]+(LOW|MEDIUM|HIGH)', report, re.IGNORECASE)
+                    if risk_match:
+                        risk_level = risk_match.group(1).upper()
+                
+                log_report_generation(analysis_logger, customer_name, len(report), risk_level)
+                print(f"   [+] Report generated successfully ({len(report)} characters)")
+                return report
+                
+            except Exception as e:
+                error_msg = f"Error generating report: {str(e)}"
+                analysis_logger.error(f"Report generation failed for {customer_name}: {error_msg}")
+                print(f"   [ERROR] {error_msg}")
+                return f"Error: {error_msg}"
 
