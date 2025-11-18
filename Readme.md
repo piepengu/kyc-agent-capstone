@@ -176,19 +176,29 @@ This design ensures:
 
 **Output**: List of search result dictionaries
 
-#### **2. WatchlistAgent** (`agents.py`, lines 162-208)
+#### **2. WatchlistAgent** (`agents.py`, lines 180-233)
 
-**Purpose**: Check customer against sanctions watchlists
+**Purpose**: Check customer against sanctions watchlists with fuzzy matching
 
 **Tools Used**:
-- **Custom**: `check_watchlist()` tool
+- **Custom**: `check_watchlist()` tool with fuzzy matching and alias support
 
 **Process**:
 1. Calls `check_watchlist()` with customer name
 2. Checks against 4 watchlists: OFAC, UN, EU, UK
-3. Returns match status and details
+3. Uses fuzzy matching to handle name variations and aliases
+4. Returns match status, similarity scores, and detailed match information
 
-**Output**: Dictionary with match status and watchlist details
+**Output**: Dictionary with:
+- `matched`: bool - Whether any matches found
+- `watchlists_checked`: List[str] - Watchlists checked
+- `matches`: List[Dict] - Detailed match information including:
+  - Watchlist name
+  - Matched name
+  - Similarity score (0.0-1.0)
+  - Reason for listing
+  - Date added
+  - Country
 
 #### **3. AnalysisAgent** (`agents.py`, lines 210-333)
 
@@ -417,18 +427,30 @@ This section explicitly maps our code to the course's key concepts for the judge
 
 **Implementation - check_watchlist Tool**:
 - **File**: `tools.py`
-- **Lines**: 12-52 (`check_watchlist()` function)
-- **Code**:
-  ```python
-  def check_watchlist(customer_name: str) -> Dict:
-      """Custom tool to check a customer name against watchlists."""
-      # Checks against OFAC, UN, EU, UK watchlists
-      # Returns match status and details
-  ```
+- **Lines**: 196-261 (`check_watchlist()` function)
+- **Features**:
+  - **Fuzzy Matching**: Uses `difflib.SequenceMatcher` for name similarity scoring
+  - **Alias Support**: Checks known aliases for each watchlist entry
+  - **Name Normalization**: Normalizes names (lowercase, removes punctuation) for better matching
+  - **Similarity Threshold**: Configurable threshold (default 0.85) for match detection
+  - **Realistic Sample Data**: Includes sample entries for OFAC, UN, EU, and UK sanctions lists
+
+**Code**:
+```python
+def check_watchlist(customer_name: str, similarity_threshold: float = 0.85) -> Dict:
+    """Custom tool to check a customer name against watchlists with fuzzy matching."""
+    # Checks against OFAC, UN, EU, UK watchlists
+    # Returns match status, similarity scores, and detailed match information
+```
+
+**Supporting Functions**:
+- `normalize_name()` (lines 118-136): Normalizes names for comparison
+- `calculate_similarity()` (lines 139-165): Computes similarity score between names
+- `check_name_match()` (lines 168-193): Checks if customer name matches entry (including aliases)
 
 **Usage**:
 - **File**: `agents.py`
-- **Lines**: 193 (import), 193 (call in WatchlistAgent)
+- **Lines**: 21 (import), 215 (call in WatchlistAgent)
 - **Code**:
   ```python
   from tools import check_watchlist
@@ -436,15 +458,22 @@ This section explicitly maps our code to the course's key concepts for the judge
   ```
 
 **How it works**:
-- Custom tool simulates watchlist checking
-- Checks against 4 international sanctions lists
-- Returns structured results with match status
+- Custom tool with realistic sample watchlist data
+- Checks against 4 international sanctions lists (OFAC, UN, EU, UK)
+- Uses fuzzy matching to handle name variations (e.g., "Vlad Petrov" matches "Vladimir Petrov")
+- Checks aliases for each watchlist entry
+- Returns structured results with match status, similarity scores, and detailed information
 - Can be extended to connect to real watchlist databases
+
+**Example Results**:
+- Exact match: "Vladimir Petrov" → 4 matches (100% similarity)
+- Alias match: "Vlad Petrov" → 4 matches (100% similarity via alias)
+- No match: "John Smith" → 0 matches
 
 **Implementation - format_search_query Helper**:
 - **File**: `tools.py`
-- **Lines**: 55-74
-- **Usage**: `agents.py`, line 104
+- **Lines**: 264-285
+- **Usage**: `agents.py`, line 107
 
 ### **4. Sessions & Memory** ✅
 
@@ -539,7 +568,7 @@ This section explicitly maps our code to the course's key concepts for the judge
 | Multi-Agent System (Sequential) | `graph.py` | 206-228 | ✅ |
 | Tools (Built-in) - Google Search | `agents.py` | 70-78, 112-117 | ✅ |
 | Tools (Built-in) - Gemini | `agents.py` | 241-243, 310-312 | ✅ |
-| Tools (Custom) - check_watchlist | `tools.py` | 12-52 | ✅ |
+| Tools (Custom) - check_watchlist | `tools.py` | 196-261 | ✅ |
 | Sessions & Memory - AgentState | `graph.py` | 69-76 | ✅ |
 | Sessions & Memory - State Init | `main.py` | 43-49 | ✅ |
 | Logging & Observability | `logger.py` | Throughout | ✅ |
