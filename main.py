@@ -33,37 +33,48 @@ if not os.getenv('GOOGLE_API_KEY'):
         pass
 
 
-def main():
-    """Main entry point for the KYC Bot."""
+def main(customer_name: str = None):
+    """
+    Main entry point for the KYC Bot.
+    
+    Args:
+        customer_name: Optional customer name. If not provided, will be read from command line args.
+        
+    Returns:
+        Dictionary with investigation results, or exit code if run from command line.
+    """
     from error_handling import validate_customer_name
     
-    parser = argparse.ArgumentParser(description="KYC Bot - Automated KYC Compliance Agent")
-    parser.add_argument("--name", type=str, required=True, help="Customer name to investigate")
-    args = parser.parse_args()
+    # If customer_name is provided, use it; otherwise parse from command line
+    if customer_name is None:
+        parser = argparse.ArgumentParser(description="KYC Bot - Automated KYC Compliance Agent")
+        parser.add_argument("--name", type=str, required=True, help="Customer name to investigate")
+        args = parser.parse_args()
+        customer_name = args.name
     
     # Validate customer name
-    is_valid, error_msg = validate_customer_name(args.name)
+    is_valid, error_msg = validate_customer_name(customer_name)
     if not is_valid:
         print(f"[ERROR] Invalid customer name: {error_msg}")
         return 1
     
     # Initialize state
     initial_state: AgentState = {
-        "customer_name": args.name.strip(),
+        "customer_name": customer_name.strip(),
         "search_results": [],
         "watchlist_results": {},
         "final_report": "",
         "error": ""
     }
     
-    print(f"[*] Starting KYC investigation for: {args.name}")
+    print(f"[*] Starting KYC investigation for: {customer_name}")
     print("=" * 60)
     print()
     
     # Start performance tracking
-    performance_tracker.start_investigation(args.name)
+    performance_tracker.start_investigation(customer_name)
     workflow_logger.info("=" * 60)
-    workflow_logger.info(f"Starting KYC investigation for: {args.name}")
+    workflow_logger.info(f"Starting KYC investigation for: {customer_name}")
     workflow_logger.info("=" * 60)
     
     try:
