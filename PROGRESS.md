@@ -266,6 +266,26 @@ GOOGLE_SEARCH_ENGINE_ID=your_search_engine_id_here
 
 ---
 
+## 🎯 Next Steps
+
+### ✅ Recently Completed
+- **Cloud Run Deployment:** Service successfully deployed and accessible
+- **CORS Support:** Browser-based testing now working
+- **Test Interface:** HTML test page created for easy testing
+- **Deployment Documentation:** Complete guides for Docker and GCP setup
+
+### ⏳ Remaining Tasks
+1. **Project Video** (Bonus Points!)
+   - 2-minute demo video showing the agent in action
+   - Demonstrate key features: search, watchlist, analysis
+   - Show the deployed service working
+   - Explain the multi-agent architecture
+
+2. **Risk Assessment Enhancement** (Optional)
+   - Add explicit risk assessment criteria
+   - Document risk level determination rules
+   - Consider rule-based scoring system
+
 ## 🎯 Next Session Goals
 
 1. Add logging and observability (required concept)
