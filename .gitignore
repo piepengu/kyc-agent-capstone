@@ -63,3 +63,8 @@ htmlcov/
 verify_gcp_setup.ps1
 generate_card.py
 
+# Redundant video documentation (consolidated into VIDEO_SCRIPT_UPDATED.md)
+# VIDEO_SCRIPT.md
+# VIDEO_GUIDE.md
+# QUICK_VIDEO_RECORD.md
+
