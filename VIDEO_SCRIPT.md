@@ -69,11 +69,15 @@
 ### [1:30 - 1:45] Show Deployment
 **Visual:** Open deployed service URL, show API working
 
+**Deployed Service URL:** `https://kyc-bot-67jaheyovq-uc.a.run.app`
+
 **Narration:**
-> "The system is deployed and accessible via REST API. You can integrate it into any system or use our web interface. It's production-ready with comprehensive error handling and monitoring."
+> "The system is deployed on Google Cloud Run and accessible via REST API. You can integrate it into any system or use our web interface. It's production-ready with comprehensive error handling and monitoring."
 
 **Action:**
-- Show the deployed service
+- Open browser to: https://kyc-bot-67jaheyovq-uc.a.run.app/health
+- Show the health endpoint response
+- Or show the test interface at the deployed URL
 - Test an endpoint
 - Show API response
 
@@ -86,8 +90,8 @@
 > "KYC Bot: Automated KYC compliance in minutes, not hours. Check out the code on GitHub and try it yourself. Thank you!"
 
 **Action:**
-- Show GitHub link
-- Show service URL
+- Show GitHub link: github.com/piepengu/kyc-agent-capstone
+- Show service URL: https://kyc-bot-67jaheyovq-uc.a.run.app
 - Fade out
 
 ---

@@ -24,7 +24,7 @@ Fastest way to create your 2-minute project video.
    - [0:10-0:20] Show: Enter customer name, click "Run Investigation"
    - [0:20-1:00] Show: Investigation running, wait for results
    - [1:00-1:30] Show: Scroll through the report, highlight risk level
-   - [1:30-1:50] Show: Open deployed service URL, test endpoint
+   - [1:30-1:50] Show: Open deployed service URL (https://kyc-bot-67jaheyovq-uc.a.run.app), test endpoint
    - [1:50-2:00] Say: "Check it out on GitHub. Thank you!"
 3. Stop recording
 
@@ -67,7 +67,7 @@ Fastest way to create your 2-minute project video.
 - ✅ The investigation running
 - ✅ The final report
 - ✅ The risk level
-- ✅ The deployed service
+- ✅ The deployed service URL: https://kyc-bot-67jaheyovq-uc.a.run.app
 
 **Nice to Show:**
 - Architecture diagram

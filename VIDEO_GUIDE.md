@@ -82,8 +82,8 @@ Complete guide for creating a compelling 2-minute demo video for the KYC Bot pro
 ### **Demo - Part 3: Deployed Service (1:30 - 1:50)** - 20 seconds
 **Show Production Deployment**
 
-- Open the deployed Cloud Run service URL
-- Show the API endpoints working
+- Open the deployed Cloud Run service URL: **https://kyc-bot-67jaheyovq-uc.a.run.app**
+- Show the API endpoints working (health, investigate)
 - Quick demo of the REST API
 - Highlight: "Deployed and ready for production use"
 
