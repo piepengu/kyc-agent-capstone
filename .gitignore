@@ -44,12 +44,22 @@ logs/
 # PDF files (course materials, not needed in repo)
 *.pdf
 
-# Redundant documentation files
-ACTIVATE_ENV.md
-ENABLE_CUSTOM_SEARCH_API.md
-FIX_CUSTOM_SEARCH_API.md
-QUICK_FIX_CUSTOM_SEARCH.md
-QUICK_TEST.md
-TESTING.md
-SECURITY_NOTICE.md
+# Redundant documentation files (removed)
+# ACTIVATE_ENV.md
+# ENABLE_CUSTOM_SEARCH_API.md
+# FIX_CUSTOM_SEARCH_API.md
+# FIX_API_KEY_RESTRICTIONS.md
+# QUICK_FIX_CUSTOM_SEARCH.md
+# QUICK_TEST.md
+# TESTING.md
+# SECURITY_NOTICE.md
+# TEST_RESULTS.md
+
+# Coverage reports
+htmlcov/
+.coverage
+
+# Temporary scripts
+verify_gcp_setup.ps1
+generate_card.py
 
