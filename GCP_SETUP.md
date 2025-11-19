@@ -26,7 +26,27 @@ Complete step-by-step guide to set up a GCP project for deploying KYC Bot to Clo
    - **Note:** Google provides $300 free credit for new accounts (valid for 90 days)
    - You won't be charged unless you exceed free tier limits
 
-## Step 2: Create a New Project
+## Step 2: Select or Create a Project
+
+### Option A: Use Existing Project (Recommended)
+
+If you already have a Google Cloud project, you can use it:
+
+1. **Click the project dropdown** (top left, shows "Select a project")
+
+2. **Select your existing project** from the list
+
+3. **Verify the project is active:**
+   - The project name should appear in the top bar
+   - Note your Project ID (you'll need it later)
+
+4. **Skip to Step 3** (Enable Required APIs)
+
+**Note:** Make sure billing is enabled for your existing project. If not, see Step 3 in the billing section below.
+
+### Option B: Create a New Project
+
+If you want to create a new project specifically for KYC Bot:
 
 1. **Click the project dropdown** (top left, shows "Select a project")
 
@@ -44,7 +64,24 @@ Complete step-by-step guide to set up a GCP project for deploying KYC Bot to Clo
 
 6. **Select your new project** from the dropdown
 
-## Step 3: Enable Required APIs
+## Step 3: Verify Billing (For Existing Projects)
+
+If using an existing project, verify billing is enabled:
+
+1. **Go to Billing:**
+   - Click hamburger menu (☰) → "Billing"
+   - Or visit: https://console.cloud.google.com/billing
+
+2. **Check if billing is linked:**
+   - If you see "No billing accounts", create one
+   - If billing exists but not linked, link it to your project
+
+3. **Link billing to project:**
+   ```powershell
+   gcloud billing projects link YOUR_PROJECT_ID --billing-account=BILLING_ACCOUNT_ID
+   ```
+
+## Step 4: Enable Required APIs
 
 1. **Go to APIs & Services → Library:**
    - Click the hamburger menu (☰) → "APIs & Services" → "Library"
@@ -75,7 +112,7 @@ Complete step-by-step guide to set up a GCP project for deploying KYC Bot to Clo
    - Go to "APIs & Services" → "Enabled APIs"
    - You should see all the APIs listed above
 
-## Step 4: Install Google Cloud SDK (gcloud CLI)
+## Step 5: Install Google Cloud SDK (gcloud CLI)
 
 ### Option A: Using Installer (Recommended for Windows)
 
@@ -102,7 +139,7 @@ Complete step-by-step guide to set up a GCP project for deploying KYC Bot to Clo
 & $env:Temp\GoogleCloudSDKInstaller.exe
 ```
 
-## Step 5: Initialize gcloud CLI
+## Step 6: Initialize gcloud CLI
 
 1. **Open PowerShell** (new window)
 
@@ -131,7 +168,7 @@ Complete step-by-step guide to set up a GCP project for deploying KYC Bot to Clo
    project = kyc-bot-123456
    ```
 
-## Step 6: Set Up Authentication
+## Step 7: Set Up Authentication
 
 1. **Set your project:**
    ```powershell
@@ -150,7 +187,7 @@ Complete step-by-step guide to set up a GCP project for deploying KYC Bot to Clo
    ```
    - Browser will open → Sign in and authorize
 
-## Step 7: Create Artifact Registry Repository (Optional but Recommended)
+## Step 8: Create Artifact Registry Repository (Optional but Recommended)
 
 1. **Create repository:**
    ```powershell
@@ -165,7 +202,7 @@ Complete step-by-step guide to set up a GCP project for deploying KYC Bot to Clo
    gcloud auth configure-docker us-central1-docker.pkg.dev
    ```
 
-## Step 8: Verify Setup
+## Step 9: Verify Setup
 
 Run these commands to verify everything is set up:
 
@@ -183,7 +220,7 @@ gcloud auth list
 gcloud run services list --region=us-central1
 ```
 
-## Step 9: Set Environment Variables
+## Step 10: Set Environment Variables
 
 Create a PowerShell script or set these in your session:
 
@@ -198,7 +235,7 @@ echo "Project ID: $env:PROJECT_ID"
 echo "Region: $env:REGION"
 ```
 
-## Step 10: Test Deployment
+## Step 11: Test Deployment
 
 Now you're ready to deploy! Test with a simple build:
 

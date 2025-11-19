@@ -8,7 +8,16 @@ Fastest way to get your GCP project ready for deployment.
 - [ ] Credit card for billing (won't be charged for free tier)
 - [ ] 5-10 minutes
 
-## Step 1: Create Project (2 minutes)
+## Step 1: Select or Create Project (2 minutes)
+
+### Option A: Use Existing Project (Recommended if you have one)
+
+1. Go to: https://console.cloud.google.com/
+2. Click "Select a project" (top left)
+3. Select your existing project from the list
+4. Skip to Step 2
+
+### Option B: Create New Project
 
 1. Go to: https://console.cloud.google.com/
 2. Click "Select a project" → "New Project"
