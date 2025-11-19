@@ -4,6 +4,40 @@
 Write-Host "=== KYC Bot Cloud Run Deployment ===" -ForegroundColor Cyan
 Write-Host ""
 
+# Find gcloud executable
+$gcloudPath = $null
+$possiblePaths = @(
+    "C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\bin\gcloud.cmd",
+    "C:\Program Files\Google\Cloud SDK\google-cloud-sdk\bin\gcloud.cmd",
+    "$env:ProgramFiles\Google\Cloud SDK\google-cloud-sdk\bin\gcloud.cmd",
+    "$env:ProgramFiles(x86)\Google\Cloud SDK\google-cloud-sdk\bin\gcloud.cmd"
+)
+
+foreach ($path in $possiblePaths) {
+    if (Test-Path $path) {
+        $gcloudPath = $path
+        break
+    }
+}
+
+# Try to find gcloud in PATH
+if (-not $gcloudPath) {
+    $gcloudInPath = Get-Command gcloud -ErrorAction SilentlyContinue
+    if ($gcloudInPath) {
+        $gcloudPath = $gcloudInPath.Source
+    }
+}
+
+if (-not $gcloudPath) {
+    Write-Host "ERROR: gcloud not found!" -ForegroundColor Red
+    Write-Host "Please make sure Google Cloud SDK is installed." -ForegroundColor Yellow
+    Write-Host "Or run this from Command Prompt where gcloud is available." -ForegroundColor Yellow
+    exit 1
+}
+
+Write-Host "Using gcloud: $gcloudPath" -ForegroundColor Gray
+Write-Host ""
+
 # Set variables
 $PROJECT_ID = "finsight-ai-jd"
 $REGION = "us-central1"
@@ -52,7 +86,7 @@ Write-Host "Step 1: Building and pushing Docker image..." -ForegroundColor Yello
 Write-Host "This may take 5-10 minutes..." -ForegroundColor Gray
 Write-Host ""
 
-gcloud builds submit --tag $IMAGE_NAME`:latest
+& $gcloudPath builds submit --tag $IMAGE_NAME`:latest
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Build failed!" -ForegroundColor Red
@@ -69,7 +103,7 @@ Write-Host ""
 
 $envVarsString = "GOOGLE_API_KEY=$($envVars['GOOGLE_API_KEY']),GOOGLE_SEARCH_ENGINE_ID=$($envVars['GOOGLE_SEARCH_ENGINE_ID'])"
 
-gcloud run deploy $SERVICE_NAME `
+& $gcloudPath run deploy $SERVICE_NAME `
     --image $IMAGE_NAME`:latest `
     --platform managed `
     --region $REGION `
@@ -91,7 +125,7 @@ Write-Host ""
 
 # Get service URL
 Write-Host "Getting service URL..." -ForegroundColor Yellow
-$serviceUrl = gcloud run services describe $SERVICE_NAME --platform managed --region $REGION --format 'value(status.url)'
+$serviceUrl = & $gcloudPath run services describe $SERVICE_NAME --platform managed --region $REGION --format 'value(status.url)'
 
 Write-Host ""
 Write-Host "Service URL: $serviceUrl" -ForegroundColor Cyan
