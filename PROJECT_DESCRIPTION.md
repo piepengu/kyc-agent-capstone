@@ -25,7 +25,7 @@ Agents excel at using tools, which is essential for KYC. The system integrates G
 ### State Management & Decision-Making
 Agents orchestrated by LangGraph maintain state throughout the investigation, allowing each agent to build upon previous findings. The AnalysisAgent uses Gemini AI to intelligently assess risk, understanding context and generating human-readable reports - tasks that benefit from AI-powered agents rather than rigid rule-based systems. Agent-based systems can process multiple customers in parallel and maintain consistent quality, addressing scalability and consistency challenges.
 
-## What You Created
+## What we Created
 
 ### Overall Architecture
 
@@ -141,7 +141,7 @@ The fuzzy matching algorithm correctly identifies this as an alias match, demons
 
 ### Example 3: Low-Risk Customer
 
-**Input:** `John Smith`
+**Input:** `Grigor Dimitrov`
 
 **Output:**
 ```
