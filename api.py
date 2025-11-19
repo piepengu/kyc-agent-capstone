@@ -95,14 +95,40 @@ def investigate():
             performance_tracker.end_investigation()
             raise
         
-        # Extract risk level from report
-        risk_level = "UNKNOWN"
-        report = final_state.get("final_report", "")
-        if "Risk Level:" in report or "risk level:" in report.lower():
+        # Extract risk level from report using multiple patterns
+        def extract_risk_level(report_text: str) -> str:
+            """Extract risk level from report text using multiple patterns."""
+            if not report_text:
+                return "UNKNOWN"
+            
             import re
-            risk_match = re.search(r'Risk Level[:\s]+(LOW|MEDIUM|HIGH)', report, re.IGNORECASE)
-            if risk_match:
-                risk_level = risk_match.group(1).upper()
+            patterns = [
+                # Pattern 1: "Risk Level: LOW" (standard format)
+                (r'Risk Level[:\s]+(LOW|MEDIUM|HIGH)', re.IGNORECASE),
+                # Pattern 2: "**Risk Level:** LOW" (markdown bold)
+                (r'\*\*Risk Level\*\*[:\s]+(LOW|MEDIUM|HIGH)', re.IGNORECASE),
+                # Pattern 3: "Risk Level is LOW" or "Risk Level - LOW"
+                (r'Risk Level\s+(?:is|:|-)\s+(LOW|MEDIUM|HIGH)', re.IGNORECASE),
+                # Pattern 4: "## Risk Level" or "2. Risk Level" (section headers)
+                (r'(?:##|#|\d+\.)\s*Risk Level[^.]{0,150}?\b(LOW|MEDIUM|HIGH)\b', re.IGNORECASE | re.DOTALL),
+                # Pattern 5: Look for "LOW", "MEDIUM", or "HIGH" within 200 chars after "Risk Level"
+                (r'Risk Level[^.]{0,200}?\b(LOW|MEDIUM|HIGH)\b', re.IGNORECASE | re.DOTALL),
+                # Pattern 6: Look for risk level in "**LOW**" format near "Risk Level"
+                (r'Risk Level[^.]{0,200}?\*\*(LOW|MEDIUM|HIGH)\*\*', re.IGNORECASE | re.DOTALL),
+            ]
+            
+            for pattern, flags in patterns:
+                match = re.search(pattern, report_text, flags)
+                if match:
+                    risk = match.group(1).upper()
+                    workflow_logger.debug(f"Risk level extracted using pattern: {pattern[:50]}... -> {risk}")
+                    return risk
+            
+            # If no pattern matches, log for debugging
+            workflow_logger.warning(f"Could not extract risk level from report. Report preview: {report_text[:500]}")
+            return "UNKNOWN"
+        
+        risk_level = extract_risk_level(final_state.get("final_report", ""))
         
         response = {
             "customer_name": final_state.get("customer_name", customer_name),
