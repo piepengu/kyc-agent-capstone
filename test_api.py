@@ -25,15 +25,15 @@ def test_health(base_url: str) -> bool:
         response = requests.get(f"{base_url}/health", timeout=5)
         if response.status_code == 200:
             data = response.json()
-            print(f"✅ Status: {data.get('status')}")
+            print(f"[OK] Status: {data.get('status')}")
             print(f"   Service: {data.get('service')}")
             print(f"   Version: {data.get('version')}")
             return True
         else:
-            print(f"❌ Failed: Status code {response.status_code}")
+            print(f"[FAIL] Failed: Status code {response.status_code}")
             return False
     except requests.exceptions.RequestException as e:
-        print(f"❌ Error: {str(e)}")
+        print(f"[ERROR] Error: {str(e)}")
         return False
 
 
@@ -53,7 +53,7 @@ def test_investigation(base_url: str, customer_name: str) -> bool:
         
         if response.status_code == 200:
             data = response.json()
-            print(f"✅ Investigation completed")
+            print(f"[OK] Investigation completed")
             print(f"   Risk Level: {data.get('risk_level', 'UNKNOWN')}")
             print(f"   Search Results: {len(data.get('search_results', []))} items")
             watchlist_matches = len(data.get('watchlist_results', {}).get('matches', []))
@@ -70,7 +70,7 @@ def test_investigation(base_url: str, customer_name: str) -> bool:
             
             return True
         else:
-            print(f"❌ Failed: Status code {response.status_code}")
+            print(f"[FAIL] Failed: Status code {response.status_code}")
             try:
                 error_data = response.json()
                 print(f"   Error: {error_data.get('error', 'Unknown error')}")
@@ -79,10 +79,10 @@ def test_investigation(base_url: str, customer_name: str) -> bool:
             return False
             
     except requests.exceptions.Timeout:
-        print("❌ Error: Request timed out (investigation took too long)")
+        print("[ERROR] Error: Request timed out (investigation took too long)")
         return False
     except requests.exceptions.RequestException as e:
-        print(f"❌ Error: {str(e)}")
+        print(f"[ERROR] Error: {str(e)}")
         return False
 
 
@@ -94,16 +94,16 @@ def test_metrics(base_url: str) -> bool:
         response = requests.get(f"{base_url}/api/v1/metrics", timeout=5)
         if response.status_code == 200:
             data = response.json()
-            print(f"✅ Metrics retrieved")
+            print(f"[OK] Metrics retrieved")
             print(f"   Service: {data.get('service')}")
             print(f"   Version: {data.get('version')}")
             print(f"   Status: {data.get('status')}")
             return True
         else:
-            print(f"❌ Failed: Status code {response.status_code}")
+            print(f"[FAIL] Failed: Status code {response.status_code}")
             return False
     except requests.exceptions.RequestException as e:
-        print(f"❌ Error: {str(e)}")
+        print(f"[ERROR] Error: {str(e)}")
         return False
 
 
@@ -152,17 +152,17 @@ def main():
     print("Test Summary")
     print("=" * 60)
     for test_name, passed in results:
-        status = "✅ PASSED" if passed else "❌ FAILED"
+        status = "[PASSED]" if passed else "[FAILED]"
         print(f"{test_name}: {status}")
     
     all_passed = all(result[1] for result in results)
     
     print("=" * 60)
     if all_passed:
-        print("✅ All tests passed!")
+        print("[SUCCESS] All tests passed!")
         return 0
     else:
-        print("❌ Some tests failed")
+        print("[FAILED] Some tests failed")
         return 1
 
 
