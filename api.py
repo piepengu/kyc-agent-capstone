@@ -6,6 +6,7 @@ Can be deployed to Cloud Run or run locally.
 """
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import os
 import sys
 import traceback
@@ -14,6 +15,8 @@ from graph import create_workflow, AgentState
 from logger import workflow_logger
 
 app = Flask(__name__)
+# Enable CORS for all routes
+CORS(app)
 
 # Configure logging
 import logging
