@@ -71,6 +71,7 @@ def investigate():
         # Run investigation
         workflow_logger.info(f"API request received for: {customer_name}")
         
+        # Create workflow and run investigation
         workflow = create_workflow()
         initial_state: AgentState = {
             "customer_name": customer_name.strip(),
@@ -80,7 +81,16 @@ def investigate():
             "error": ""
         }
         
-        final_state = workflow.invoke(initial_state)
+        # Start performance tracking
+        from logger import performance_tracker
+        performance_tracker.start_investigation(customer_name)
+        
+        try:
+            final_state = workflow.invoke(initial_state)
+            performance_tracker.end_investigation()
+        except Exception as e:
+            performance_tracker.end_investigation()
+            raise
         
         # Extract risk level from report
         risk_level = "UNKNOWN"

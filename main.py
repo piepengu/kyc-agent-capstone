@@ -110,15 +110,30 @@ def main(customer_name: str = None):
         performance_tracker.end_investigation()
         performance_tracker.log_summary()
         
+        # Return final state (can be used by API)
+        return final_state
+        
     except Exception as e:
         workflow_logger.error(f"Fatal error in main: {str(e)}", exc_info=True)
         performance_tracker.end_investigation()
         print(f"\n[ERROR] Fatal error: {str(e)}")
         import traceback
         traceback.print_exc()
-        return 1
-    
-    return 0
+        
+        # Return error state
+        error_state = {
+            "customer_name": customer_name,
+            "search_results": [],
+            "watchlist_results": {},
+            "final_report": "",
+            "error": str(e)
+        }
+        
+        # If called from command line, exit with code
+        if hasattr(sys, 'argv') and len(sys.argv) > 1:
+            return 1
+        
+        return error_state
 
 
 if __name__ == "__main__":
