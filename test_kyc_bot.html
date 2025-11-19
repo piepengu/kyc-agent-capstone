@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KYC Bot - Test Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .endpoint {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            border-radius: 4px;
+        }
+        .endpoint h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px 5px 5px 0;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+        .error {
+            color: #d32f2f;
+        }
+        .success {
+            color: #388e3c;
+        }
+        .service-url {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ KYC Bot - Test Interface</h1>
+        
+        <div class="service-url">
+            <strong>Service URL:</strong> https://kyc-bot-67jaheyovq-uc.a.run.app
+        </div>
+
+        <!-- Health Check -->
+        <div class="endpoint">
+            <h3>1. Health Check</h3>
+            <button onclick="testHealth()">Test Health Endpoint</button>
+            <div id="healthResult" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Investigation -->
+        <div class="endpoint">
+            <h3>2. Run Investigation</h3>
+            <input type="text" id="customerName" placeholder="Enter customer name (e.g., John Doe)" value="John Doe">
+            <button onclick="runInvestigation()">Run Investigation</button>
+            <button onclick="runInvestigation('Grigor Dimitrov')">Test: Grigor Dimitrov</button>
+            <button onclick="runInvestigation('Shakira')">Test: Shakira</button>
+            <div id="investigationResult" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="endpoint">
+            <h3>3. Service Metrics</h3>
+            <button onclick="testMetrics()">Get Metrics</button>
+            <div id="metricsResult" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://kyc-bot-67jaheyovq-uc.a.run.app';
+
+        async function testHealth() {
+            const resultDiv = document.getElementById('healthResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<span class="loading">Testing health endpoint...</span>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                resultDiv.innerHTML = `<span class="success">✓ Status: ${response.status}</span>\n\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+
+        async function runInvestigation(customerName = null) {
+            const resultDiv = document.getElementById('investigationResult');
+            const nameInput = document.getElementById('customerName');
+            const name = customerName || nameInput.value || 'John Doe';
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<span class="loading">Running investigation for: ${name}...\nThis may take 30-60 seconds...</span>`;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/investigate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ customer_name: name })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    let output = `<span class="success">✓ Investigation Complete (Status: ${response.status})</span>\n\n`;
+                    output += `Customer: ${data.customer_name}\n`;
+                    output += `Risk Level: ${data.risk_level}\n`;
+                    output += `Search Results: ${data.search_results?.length || 0} items\n`;
+                    output += `Watchlist Matches: ${data.watchlist_results?.matches?.length || 0}\n\n`;
+                    output += `=== Full Report ===\n${data.final_report || 'No report generated'}\n\n`;
+                    output += `=== Full Response ===\n${JSON.stringify(data, null, 2)}`;
+                    resultDiv.innerHTML = output;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">✗ Error (Status: ${response.status})</span>\n\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+
+        async function testMetrics() {
+            const resultDiv = document.getElementById('metricsResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<span class="loading">Fetching metrics...</span>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/v1/metrics`);
+                const data = await response.json();
+                resultDiv.innerHTML = `<span class="success">✓ Status: ${response.status}</span>\n\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>
+
