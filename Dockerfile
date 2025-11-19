@@ -28,6 +28,7 @@ EXPOSE 8080
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 
-# Default command (can be overridden)
-CMD ["python", "main.py", "--name", "Test Customer"]
+# Default command - run API server
+# Can be overridden to run CLI: python main.py --name "Customer Name"
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "300", "api:app"]
 
