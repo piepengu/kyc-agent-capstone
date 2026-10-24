@@ -1,5 +1,7 @@
 # KYC Bot
 
+**Live demo:** [https://piepengu.github.io/kyc-agent-capstone/](https://piepengu.github.io/kyc-agent-capstone/)
+
 Multi-agent **Know Your Customer** workflow that turns a customer name into an auditable risk report: adverse-media search → sanctions screening → Gemini analysis.
 
 Built for the [Kaggle Agents Intensive](https://www.kaggle.com/) Capstone (Concierge Agents track, Nov 2025).
@@ -65,7 +67,7 @@ pytest -q
 
 Optional API server: `python api.py` → `POST /api/v1/investigate`.
 
-Deployed example (may change): `https://kyc-bot-67jaheyovq-uc.a.run.app` — see `DEPLOYMENT.md`.
+Browser demo: [https://piepengu.github.io/kyc-agent-capstone/](https://piepengu.github.io/kyc-agent-capstone/). Use **Demo Mode** for the walkthrough. **Run Real Investigation** calls the deployed API at `https://kyc-bot-67jaheyovq-uc.a.run.app` — see `DEPLOYMENT.md`.
 
 ## Engineering notes
 
