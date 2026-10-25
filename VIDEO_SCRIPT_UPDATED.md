@@ -24,8 +24,8 @@
        - SearchAgent logs appearing
        - WatchlistAgent logs with match results
        - AnalysisAgent generating report
-       - Final report appearing in right panel with risk level badge
-   - **Optional: Show one "Real Investigation"** (30-60 sec):
+       - Final report appearing in right panel with risk level badge  //SHOW THINGS HAPPENING
+   **" Show one "Real Investigation"** (30-60 sec):
      - Enter "Shakira" (shows MEDIUM risk - matches real API)
      - Click "🔍 Run Real Investigation"
      - Show it's actually calling the live API
@@ -51,7 +51,7 @@
 
 > "In the financial world, onboarding a new client isn't simple. It involves 'Know Your Customer' or KYC compliance—a manual nightmare of Googling for adverse media, checking scattered sanctions lists, and writing reports. It's slow, expensive, and prone to human error.
 >
-> I'm [Your Name], and for the Kaggle Agents Capstone, I built the KYC Bot: An autonomous concierge agent that turns a 2-hour investigation into a 2-minute automated review."
+> I'm [Your Name], and I'm doing this with my partners Jason and Daniel. and for the Kaggle Agents Capstone, I built the KYC Bot: An autonomous concierge agent that turns a 2-hour investigation into a 2-minute automated review."
 
 ### [0:20 - 0:55] The Demo (Show, Don't Just Tell)
 
